@@ -8,13 +8,14 @@ Démontrer une chaîne complète de déploiement cloud sécurisé : de l'infrast
 
 ## Architecture
 Compte Azure (Free Tier)
-└── Resource Group : rg-homelab-cloud (France Central)
-└── [À venir Jour 2] Conteneur applicatif (gestionnaire de mots de passe)
-└── [À venir Jour 3] Coffre-fort de secrets (Key Vault)
-## Avancement
+    └── Resource Group : rg-homelab-cloud (France Central)
+            ├── Container Registry : coffremdpacr
+            ├── Container Instance : coffre-mdp-app (gestionnaire de mots de passe, port 8080)
+            └── [À venir Jour 3] Coffre-fort de secrets (Key Vault)
 
+## Avancement
 - [x] **Jour 1** — Bootstrap Infrastructure as Code
-- [ ] Jour 2 — Déploiement de l'application conteneurisée
+- [x] **Jour 2** — Déploiement de l'application conteneurisée
 - [ ] Jour 3 — IAM least-privilege et chiffrement
 - [ ] Jour 4 — Analyse de risques EBIOS RM
 - [ ] Jour 5 — Conformité ISO 27001 et destruction des ressources
@@ -35,6 +36,27 @@ Compte Azure (Free Tier)
 ![Resource group créé](screenshots/resource-group-created.png)
 
 Vérification indépendante via Azure CLI (`az group show --name rg-homelab-cloud`), confirmant `"provisioningState": "Succeeded"`.
+
+## Jour 2 — Déploiement conteneurisé de l'application
+
+**Réalisé :**
+- Application Flask (gestionnaire de mots de passe, chiffrement Fernet) conteneurisée via Docker
+- Image poussée vers Azure Container Registry (`coffremdpacr`)
+- Déploiement du conteneur via Terraform sur Azure Container Instances
+- Application accessible publiquement, uniquement sur le port applicatif (8080), sans accès SSH exposé
+
+**Fichiers :**
+- `coffre-mdp-web/Dockerfile` — définition de l'image Docker
+- `jour2-deploy/compute.tf` — déploiement du conteneur sur Azure
+
+**URL de l'application déployée :**
+`http://coffre-mdp-joel.francecentral.azurecontainer.io:8080`
+
+**Preuve de déploiement :**
+
+![Application déployée sur Azure](screenshots/app-deployed.png)
+
+Statut confirmé "En cours d'exécution" dans le portail Azure, conteneur unique, adresse IP publique attribuée.
 
 ## Coût
 
