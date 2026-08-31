@@ -1,0 +1,69 @@
+# Cloud Secure Deployment — Azure
+
+Projet de déploiement cloud sécurisé sur Microsoft Azure, avec Infrastructure as Code (Terraform), conteneurisation, gestion des secrets et dossier de gouvernance (EBIOS RM, ISO 27001).
+
+## Objectif
+
+Démontrer une chaîne complète de déploiement cloud sécurisé : de l'infrastructure de base jusqu'à l'analyse de risques et la conformité, en restant dans le free tier Azure.
+
+## Architecture
+Compte Azure (Free Tier)
+└── Resource Group : rg-homelab-cloud (France Central)
+└── [À venir Jour 2] Conteneur applicatif (gestionnaire de mots de passe)
+└── [À venir Jour 3] Coffre-fort de secrets (Key Vault)
+## Avancement
+
+- [x] **Jour 1** — Bootstrap Infrastructure as Code
+- [ ] Jour 2 — Déploiement de l'application conteneurisée
+- [ ] Jour 3 — IAM least-privilege et chiffrement
+- [ ] Jour 4 — Analyse de risques EBIOS RM
+- [ ] Jour 5 — Conformité ISO 27001 et destruction des ressources
+
+## Jour 1 — Bootstrap Infrastructure as Code
+
+**Réalisé :**
+- Compte Azure gratuit configuré (free tier)
+- Azure CLI installé et authentifié
+- Terraform (v1.16.0) installé et initialisé
+- Premier resource group déployé par code via Terraform : `rg-homelab-cloud` (région France Central)
+
+**Fichiers :**
+- `jour1-bootstrap/main.tf` — définition du provider Azure et du resource group
+
+**Preuve de déploiement :**
+
+![Resource group créé](screenshots/resource-group-created.png)
+
+Vérification indépendante via Azure CLI (`az group show --name rg-homelab-cloud`), confirmant `"provisioningState": "Succeeded"`.
+
+## Coût
+
+Projet maintenu dans les limites du free tier Azure (175€ de crédits gratuits disponibles). Aucune ressource facturante déployée à ce stade (un resource group vide n'engendre aucun coût).
+
+## Prérequis pour reproduire ce projet
+
+- Compte Azure (free tier suffisant)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) installé
+- [Terraform](https://developer.hashicorp.com/terraform/install) ≥ 1.7
+
+## Déploiement
+
+```bash
+cd jour1-bootstrap
+az login
+terraform init
+terraform plan
+terraform apply
+```
+
+## Destruction des ressources
+
+*(à documenter au Jour 5, une fois l'ensemble du projet finalisé)*
+
+```bash
+terraform destroy
+```
+
+---
+
+*Projet réalisé dans le cadre d'une préparation à des candidatures cybersécurité/cloud (Sia, HETIC, iQanto, Equans).*
