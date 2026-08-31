@@ -15,12 +15,21 @@ data "azurerm_resource_group" "lab" {
   name = "rg-homelab-cloud"
 }
 
+data "azurerm_user_assigned_identity" "app" {
+  name                = "id-coffre-mdp"
+  resource_group_name = data.azurerm_resource_group.lab.name
+}
+
 data "azurerm_container_registry" "acr" {
   name                = "coffremdpacr"
   resource_group_name = data.azurerm_resource_group.lab.name
 }
 
 resource "azurerm_container_group" "coffre_mdp" {
+  identity {
+    type         = "UserAssigned"
+    identity_ids = [data.azurerm_user_assigned_identity.app.id]
+  }
   name                = "coffre-mdp-app"
   location            = data.azurerm_resource_group.lab.location
   resource_group_name = data.azurerm_resource_group.lab.name
@@ -31,7 +40,7 @@ resource "azurerm_container_group" "coffre_mdp" {
   image_registry_credential {
     server   = data.azurerm_container_registry.acr.login_server
     username = data.azurerm_container_registry.acr.admin_username
-    password = data.azurerm_container_registry.acr.admin_password
+    password = trimspace(data.azurerm_container_registry.acr.admin_password)
   }
 
   container {
@@ -44,9 +53,8 @@ resource "azurerm_container_group" "coffre_mdp" {
       port     = 8080
       protocol = "TCP"
     }
-
     environment_variables = {
-      SECRET_KEY = "a-changer-plus-tard-en-secret-securise"
+      AZURE_CLIENT_ID = "570d85d9-4435-4730-9f7f-fabb84279d3c"
     }
   }
 }
