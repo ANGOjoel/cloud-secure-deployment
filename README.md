@@ -11,12 +11,12 @@ Compte Azure (Free Tier)
     └── Resource Group : rg-homelab-cloud (France Central)
             ├── Container Registry : coffremdpacr
             ├── Container Instance : coffre-mdp-app (gestionnaire de mots de passe, port 8080)
-            └── [À venir Jour 3] Coffre-fort de secrets (Key Vault)
+            └── Key Vault : kv-coffre-mdp-joel (secrets de l'application)
 
 ## Avancement
 - [x] **Jour 1** — Bootstrap Infrastructure as Code
 - [x] **Jour 2** — Déploiement de l'application conteneurisée
-- [ ] Jour 3 — IAM least-privilege et chiffrement
+- [x] **Jour 3** — IAM least-privilege et chiffrement
 - [ ] Jour 4 — Analyse de risques EBIOS RM
 - [ ] Jour 5 — Conformité ISO 27001 et destruction des ressources
 
@@ -57,6 +57,41 @@ Vérification indépendante via Azure CLI (`az group show --name rg-homelab-clou
 ![Application déployée sur Azure](screenshots/app-deployed.png)
 
 Statut confirmé "En cours d'exécution" dans le portail Azure, conteneur unique, adresse IP publique attribuée.
+
+## Jour 3 — IAM least-privilege et chiffrement
+
+**Réalisé :**
+
+* Azure Key Vault `kv-coffre-mdp-joel` créé pour centraliser les secrets
+* Secret `fernet-key` stocké dans Key Vault pour le chiffrement des mots de passe
+* Secret `flask-secret` stocké dans Key Vault pour la clé de session Flask
+* Managed Identity User Assigned `id-coffre-mdp` créée et attachée au conteneur
+* Permission `Get` accordée à la Managed Identity pour accéder aux secrets
+* Application Flask modifiée pour utiliser `DefaultAzureCredential` et `SecretClient`
+* Clé Fernet retirée du conteneur : aucun fichier `key.key` présent dans `/app`
+* Image Docker reconstruite et poussée vers Azure Container Registry
+* Application redéployée et testée avec succès
+
+**Fichiers :**
+
+* `security/iam-notes.md` — documentation IAM et gestion des secrets
+* `coffre-mdp-web/app.py` — récupération des secrets depuis Azure Key Vault
+* `coffre-mdp-web/requirements.txt` — dépendances Azure Identity et Key Vault
+
+**Vérifications :**
+
+* Managed Identity présente sur `coffre-mdp-app`
+* Application Flask démarrée correctement
+* Application accessible sur le port 8080
+* Absence de `key.key` dans le conteneur
+* Création d'un compte test réussie
+* Données enregistrées de manière chiffrée
+
+**Architecture de sécurité :**
+
+`Utilisateur → Container Instance → Flask → Managed Identity → Azure Key Vault → Secrets`
+
+Le principe du moindre privilège est appliqué : l'application peut lire les secrets nécessaires sans disposer de droits d'administration sur le coffre.
 
 ## Coût
 
