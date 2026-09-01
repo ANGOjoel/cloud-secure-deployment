@@ -17,7 +17,7 @@ Compte Azure (Free Tier)
 - [x] **Jour 1** — Bootstrap Infrastructure as Code
 - [x] **Jour 2** — Déploiement de l'application conteneurisée
 - [x] **Jour 3** — IAM least-privilege et chiffrement
-- [ ] Jour 4 — Analyse de risques EBIOS RM
+- [x] **Jour 4** — Analyse de risques EBIOS RM
 - [ ] Jour 5 — Conformité ISO 27001 et destruction des ressources
 
 ## Jour 1 — Bootstrap Infrastructure as Code
@@ -92,6 +92,23 @@ Statut confirmé "En cours d'exécution" dans le portail Azure, conteneur unique
 `Utilisateur → Container Instance → Flask → Managed Identity → Azure Key Vault → Secrets`
 
 Le principe du moindre privilège est appliqué : l'application peut lire les secrets nécessaires sans disposer de droits d'administration sur le coffre.
+
+## Jour 4 — Analyse de risques EBIOS RM
+
+**Réalisé :**
+- Analyse de risques menée selon la méthode EBIOS Risk Manager (ANSSI), simplifiée en 5 ateliers
+- Atelier 1 : biens essentiels (mots de passe utilisateurs, disponibilité de l'application) et biens supports (Key Vault, Managed Identity, conteneur, registre) identifiés
+- Atelier 2 : sources de risque identifiées (attaquant externe opportuniste, erreur de configuration IAM, fuite d'identifiants)
+- Ateliers 3-4 : 2 scénarios de risque construits et évalués (vraisemblance / gravité)
+  - Fuite d'identifiants → accès non autorisé à Key Vault
+  - Absence de TLS → interception réseau
+- Atelier 5 : mesures en place et risque résiduel documentés pour chaque scénario, avec actions complémentaires proposées
+
+**Fichiers :**
+- `gouvernance/ebios-rm-analyse.md` — analyse de risques complète (5 ateliers)
+
+**Synthèse :**
+Le risque principal restant identifié est l'absence de chiffrement en transit (HTTP simple sur le port 8080), qui constitue la limite la plus significative du projet actuel. Une action complémentaire (reverse proxy + certificat TLS) est proposée pour le traiter.
 
 ## Coût
 
