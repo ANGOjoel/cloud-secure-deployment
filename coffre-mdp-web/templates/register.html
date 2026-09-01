@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Créer un compte</h1>
+<form method="post">
+    <input type="text" name="identifiant" placeholder="Identifiant" required>
+    <input type="password" name="mdp" placeholder="Mot de passe" required>
+    <input type="password" name="conf" placeholder="Confirmer le mot de passe" required>
+    <button type="submit">Créer</button>
+</form>
+<p><a href="{{ url_for('login') }}">Retour à la connexion</a></p>
+{% endblock %}

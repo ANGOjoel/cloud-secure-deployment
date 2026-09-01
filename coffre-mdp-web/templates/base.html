@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Coffre-fort</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #0A0A0A; color: #fff; margin: 0; }
+        .container { max-width: 480px; margin: 60px auto; padding: 30px; background: #1e1e1e; border-radius: 10px; }
+        h1 { text-align: center; font-size: 1.4em; }
+        input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 5px; border: none; box-sizing: border-box; }
+        button, .btn { display: inline-block; padding: 10px 18px; margin: 6px 0; border: none; border-radius: 5px;
+            background: #3A86FF; color: white; cursor: pointer; text-decoration: none; font-size: 1em; }
+        button:hover, .btn:hover { background: #5AAEFF; }
+        .btn-danger { background: #DC3545; }
+        .btn-danger:hover { background: #ff4d5e; }
+        .btn-secondary { background: #6C757D; }
+        .flash { padding: 10px; border-radius: 5px; margin-bottom: 10px; }
+        .flash.warning { background: #664d03; }
+        .flash.danger { background: #58151c; }
+        .flash.success { background: #0f5132; }
+        .cred { background: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
+        a { color: #5AAEFF; }
+        table { width: 100%; border-collapse: collapse; }
+    </style>
+</head>
+<body>
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+</div>
+</body>
+</html>
