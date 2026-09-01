@@ -132,12 +132,21 @@ terraform apply
 
 ## Destruction des ressources
 
-*(à documenter au Jour 5, une fois l'ensemble du projet finalisé)*
+Pour éviter toute facturation, l'ensemble des ressources Azure est détruit en fin de projet.
 
 ```bash
+cd jour1-bootstrap
 terraform destroy
 ```
 
+Confirmation de destruction (toutes ressources supprimées, resource group vide) :
+
+![Confirmation de destruction](screenshots/terraform-destroy.png)
+
+Vérification indépendante :
+```bash
+az group show --name rg-homelab-cloud
+```
 ---
 
 *Projet réalisé dans le cadre d'une préparation à des candidatures cybersécurité/cloud (Sia, HETIC, iQanto, Equans).*
