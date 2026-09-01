@@ -4,9 +4,10 @@ Projet de déploiement cloud sécurisé sur Microsoft Azure, avec Infrastructure
 
 ## Objectif
 
-Démontrer une chaîne complète de déploiement cloud sécurisé : de l'infrastructure de base jusqu'à l'analyse de risques et la conformité, en restant dans le free tier Azure.
+Démontrer une chaîne complète de déploiement cloud sécurisé : de l’infrastructure de base jusqu’à l’analyse de risques et la conformité, en restant dans le free tier Azure.
 
 ## Architecture
+
 Compte Azure (Free Tier)
     └── Resource Group : rg-homelab-cloud (France Central)
             ├── Container Registry : coffremdpacr
@@ -14,18 +15,19 @@ Compte Azure (Free Tier)
             └── Key Vault : kv-coffre-mdp-joel (secrets de l'application)
 
 ## Avancement
+
 - [x] **Jour 1** — Bootstrap Infrastructure as Code
 - [x] **Jour 2** — Déploiement de l'application conteneurisée
 - [x] **Jour 3** — IAM least-privilege et chiffrement
 - [x] **Jour 4** — Analyse de risques EBIOS RM
-- [ ] Jour 5 — Conformité ISO 27001 et destruction des ressources
+- [x] **Jour 5** — Conformité ISO 27001 et destruction des ressources
 
 ## Jour 1 — Bootstrap Infrastructure as Code
 
 **Réalisé :**
 - Compte Azure gratuit configuré (free tier)
 - Azure CLI installé et authentifié
-- Terraform (v1.16.0) installé et initialisé
+- Terraform installé et initialisé
 - Premier resource group déployé par code via Terraform : `rg-homelab-cloud` (région France Central)
 
 **Fichiers :**
@@ -47,6 +49,8 @@ Vérification indépendante via Azure CLI (`az group show --name rg-homelab-clou
 
 **Fichiers :**
 - `coffre-mdp-web/Dockerfile` — définition de l'image Docker
+- `coffre-mdp-web/app.py` — application Flask
+- `coffre-mdp-web/requirements.txt` — dépendances Python
 - `jour2-deploy/compute.tf` — déploiement du conteneur sur Azure
 
 **URL de l'application déployée :**
@@ -56,97 +60,76 @@ Vérification indépendante via Azure CLI (`az group show --name rg-homelab-clou
 
 ![Application déployée sur Azure](screenshots/app-deployed.png)
 
-Statut confirmé "En cours d'exécution" dans le portail Azure, conteneur unique, adresse IP publique attribuée.
+Statut confirmé "En cours d'exécution" dans le portail Azure, conteneur unique et adresse IP publique attribuée.
 
 ## Jour 3 — IAM least-privilege et chiffrement
 
 **Réalisé :**
-
-* Azure Key Vault `kv-coffre-mdp-joel` créé pour centraliser les secrets
-* Secret `fernet-key` stocké dans Key Vault pour le chiffrement des mots de passe
-* Secret `flask-secret` stocké dans Key Vault pour la clé de session Flask
-* Managed Identity User Assigned `id-coffre-mdp` créée et attachée au conteneur
-* Permission `Get` accordée à la Managed Identity pour accéder aux secrets
-* Application Flask modifiée pour utiliser `DefaultAzureCredential` et `SecretClient`
-* Clé Fernet retirée du conteneur : aucun fichier `key.key` présent dans `/app`
-* Image Docker reconstruite et poussée vers Azure Container Registry
-* Application redéployée et testée avec succès
+- Azure Key Vault `kv-coffre-mdp-joel` créé pour centraliser les secrets
+- Secret `fernet-key` stocké dans Key Vault pour le chiffrement des mots de passe
+- Secret `flask-secret` stocké dans Key Vault pour la clé de session Flask
+- Managed Identity User Assigned `id-coffre-mdp` créée et attachée au conteneur
+- Permission `Get` accordée à la Managed Identity pour accéder aux secrets
+- Application Flask modifiée pour utiliser `DefaultAzureCredential` et `SecretClient`
+- Clé Fernet retirée du conteneur : aucun fichier `key.key` présent dans `/app`
+- Image Docker reconstruite et poussée vers Azure Container Registry
+- Application redéployée et testée avec succès
+- Compte utilisateur de test créé afin de vérifier le fonctionnement du coffre-fort
 
 **Fichiers :**
-
-* `security/iam-notes.md` — documentation IAM et gestion des secrets
-* `coffre-mdp-web/app.py` — récupération des secrets depuis Azure Key Vault
-* `coffre-mdp-web/requirements.txt` — dépendances Azure Identity et Key Vault
-
-**Vérifications :**
-
-* Managed Identity présente sur `coffre-mdp-app`
-* Application Flask démarrée correctement
-* Application accessible sur le port 8080
-* Absence de `key.key` dans le conteneur
-* Création d'un compte test réussie
-* Données enregistrées de manière chiffrée
+- `security/iam-notes.md` — documentation IAM et gestion des secrets
+- `coffre-mdp-web/app.py` — récupération des secrets depuis Azure Key Vault
+- `coffre-mdp-web/requirements.txt` — dépendances Azure Identity et Key Vault
 
 **Architecture de sécurité :**
 
-`Utilisateur → Container Instance → Flask → Managed Identity → Azure Key Vault → Secrets`
+`Utilisateur → Azure Container Instance → Flask → Managed Identity → Azure Key Vault → Secrets`
 
-Le principe du moindre privilège est appliqué : l'application peut lire les secrets nécessaires sans disposer de droits d'administration sur le coffre.
+Le principe du moindre privilège est appliqué : l'application utilise une Managed Identity dédiée et dispose uniquement des permissions nécessaires pour récupérer les secrets.
 
 ## Jour 4 — Analyse de risques EBIOS RM
 
 **Réalisé :**
-- Analyse de risques menée selon la méthode EBIOS Risk Manager (ANSSI), simplifiée en 5 ateliers
-- Atelier 1 : biens essentiels (mots de passe utilisateurs, disponibilité de l'application) et biens supports (Key Vault, Managed Identity, conteneur, registre) identifiés
-- Atelier 2 : sources de risque identifiées (attaquant externe opportuniste, erreur de configuration IAM, fuite d'identifiants)
-- Ateliers 3-4 : 2 scénarios de risque construits et évalués (vraisemblance / gravité)
-  - Fuite d'identifiants → accès non autorisé à Key Vault
-  - Absence de TLS → interception réseau
-- Atelier 5 : mesures en place et risque résiduel documentés pour chaque scénario, avec actions complémentaires proposées
+- Analyse de risques menée selon la méthode EBIOS Risk Manager (version simplifiée)
+- Identification des biens essentiels et des biens supports
+- Identification des sources de risque
+- Construction de deux scénarios de risque principaux
+- Analyse des mesures de sécurité déjà présentes
+- Identification du risque résiduel
+- Proposition d'actions complémentaires
+
+**Scénarios étudiés :**
+- Fuite d'identifiants → accès non autorisé aux secrets du Key Vault
+- Absence de TLS (HTTP non chiffré) → interception des données en transit
+
+**Atelier 5 :**
+Pour chaque scénario, les mesures de sécurité déjà mises en place, le risque résiduel et une action complémentaire ont été identifiés.
 
 **Fichiers :**
-- `gouvernance/ebios-rm-analyse.md` — analyse de risques complète (5 ateliers)
+- `gouvernance/ebios-rm-analyse.md` — analyse de risques EBIOS RM
 
 **Synthèse :**
-Le risque principal restant identifié est l'absence de chiffrement en transit (HTTP simple sur le port 8080), qui constitue la limite la plus significative du projet actuel. Une action complémentaire (reverse proxy + certificat TLS) est proposée pour le traiter.
 
-## Coût
+Le principal risque résiduel identifié est l'absence de chiffrement des communications entre l'utilisateur et l'application, celle-ci étant exposée en HTTP sur le port 8080.
 
-Projet maintenu dans les limites du free tier Azure (175€ de crédits gratuits disponibles). Aucune ressource facturante déployée à ce stade (un resource group vide n'engendre aucun coût).
+## Jour 5 — Conformité ISO 27001 et destruction des ressources
 
-## Prérequis pour reproduire ce projet
+**Réalisé :**
+- Vérification des principaux contrôles de sécurité du projet à travers une checklist ISO 27001
+- Vérification de la gestion des secrets
+- Vérification de l'utilisation d'une Managed Identity
+- Vérification du principe du moindre privilège
+- Vérification de la protection des données
+- Destruction des ressources Azure à la fin du projet afin d'éviter toute facturation inutile
 
-- Compte Azure (free tier suffisant)
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) installé
-- [Terraform](https://developer.hashicorp.com/terraform/install) ≥ 1.7
+**Fichiers :**
+- `f7b2beb` — checklist ISO 27001 documentée dans le dépôt
 
-## Déploiement
+**Destruction des ressources :**
 
-```bash
-cd jour1-bootstrap
-az login
-terraform init
-terraform plan
-terraform apply
-```
+La destruction a été effectuée afin de supprimer les ressources Azure utilisées pendant le projet.
 
-## Destruction des ressources
-
-Pour éviter toute facturation, l'ensemble des ressources Azure est détruit en fin de projet.
+La commande utilisée pour finaliser la suppression du Resource Group a été :
 
 ```bash
-cd jour1-bootstrap
-terraform destroy
-```
-
-Confirmation de destruction (toutes ressources supprimées, resource group vide) :
-
-![Confirmation de destruction](screenshots/terraform-destroy.png)
-
-Vérification indépendante :
-```bash
-az group show --name rg-homelab-cloud
-```
----
-
-*Projet réalisé dans le cadre d'une préparation à des candidatures cybersécurité/cloud (Sia, HETIC, iQanto, Equans).*
+az group delete --name rg-homelab-cloud --yes
